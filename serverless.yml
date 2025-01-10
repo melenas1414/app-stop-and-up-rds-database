@@ -1,0 +1,72 @@
+service: database-management-service  # Nombre del servicio
+
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${env:AWS_REGION}
+  stage: ${opt:stage}
+
+package:
+  individually: true
+  patterns:
+    - 'dist/**'
+    - '!dist/**/*.map'
+    - '!.git'
+    - '!.github'
+    - '!src/**'
+    - '!.gitignore'
+    - '!esbuild.config.js'
+    - '!nest-cli.json'
+    - '!package-lock.json'
+    - '!tsconfig*'
+    - '!.env'
+
+functions:
+  dbActionsFuntion:
+    handler: dist/lambdas/db-actions.handler # Ruta al archivo handler.ts
+    memorySize: 128
+    timeout: 300
+    role: LambdaExecutionRole  # Rol de Lambda creado
+    environment:
+      DEBUG: ${env:DEBUG}
+      DBDEV: ${env:DBDEV}
+      DB_SUBNET_GROUP_NAME: ${env:DB_SUBNET_GROUP_NAME}
+      VPC_SEGURITY_GROUP_ID: ${env:VPC_SEGURITY_GROUP_ID}
+
+resources:
+  Resources:  # Define recursos adicionales bajo la sección Resources
+    LambdaExecutionRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Action: "sts:AssumeRole"
+              Effect: "Allow"
+              Principal:
+                Service: "lambda.amazonaws.com"
+        Policies:
+          - PolicyName: "LambdaRDSPolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "rds:CreateDBSnapshot"
+                    - "rds:DeleteDBSnapshot"
+                    - "rds:DescribeDBSnapshots"
+                    - "rds:DescribeDBInstances"
+                    - "rds:CreateDBInstance"
+                    - "rds:DeleteDBInstance"
+                    - "rds:RestoreDBInstanceFromDBSnapshot"
+                    - "rds:AddTagsToResource"
+                    - "logs:CreateLogGroup"
+                    - "logs:CreateLogStream"
+                    - "logs:PutLogEvents"
+                  Resource: "*"
+
+# Configuración de plugins si necesitas alguno
+plugins:
+  - serverless-offline
