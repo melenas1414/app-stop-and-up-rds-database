@@ -4,7 +4,7 @@ This serverless application automates the management of AWS RDS database instanc
 
 ## Overview
 
-The service provides Lambda functions to manage RDS databases effectively. These functions support:
+The service provides Lambda functions and RESTful endpoints to manage RDS databases effectively. These functions and endpoints support:
 
 1. **Database Lifecycle Operations:**
    - Start and stop RDS instances.
@@ -21,6 +21,7 @@ The service provides Lambda functions to manage RDS databases effectively. These
 - **Cloud Provider:** Deployed as AWS Lambda functions using the Serverless Framework.
 - **Database Management:** Utilizes AWS SDK for RDS to manage database instances and snapshots.
 - **Serverless Execution:** Ensures cost-effective and scalable execution.
+- **API Support:** Provides RESTful endpoints for managing databases.
 
 ## Configuration
 
@@ -93,6 +94,12 @@ Use `serverless-offline` to test the Lambda functions locally:
 npm run lambda:local
 ```
 
+To test the RESTful endpoints locally:
+
+```bash
+npm run start:dev
+```
+
 ### Building the Application
 
 To build the application, use:
@@ -113,15 +120,47 @@ serverless deploy --stage <stage>
 
 You can specify different deployment stages (e.g., `dev`, `prod`) to manage configurations for various environments.
 
-## Lambda Functions Details
+## Lambda Functions and RESTful Endpoints Details
 
-### dbActionsFunction
+### Lambda Functions
+
+#### dbActionsFunction
 
 - **Purpose:** Handles development-specific RDS database operations, including snapshot and instance lifecycle management.
 - **Configuration:**
   - **Memory:** 128MB
   - **Timeout:** 300 seconds
   - **Triggers:** Scheduled or manual invocation
+- **Input:**
+  - The Lambda function expects a JSON input with the following structure:
+    ```json
+    {
+      "action": "databaseDown" | "databaseUp"
+    }
+    ```
+  - Example:
+    ```json
+    {
+      "action": "databaseDown"
+    }
+    ```
+  - Valid actions are `databaseDown` to stop databases and `databaseUp` to start databases.
+
+### RESTful Endpoints
+
+#### `/`
+- **Method:** GET
+- **Description:** Returns a welcome message.
+
+#### `/down-dbs`
+- **Method:** GET
+- **Description:** Shuts down development RDS databases.
+- **Response:** `"down"` upon successful shutdown.
+
+#### `/up-dbs`
+- **Method:** GET
+- **Description:** Starts development RDS databases.
+- **Response:** `"up"` upon successful startup.
 
 ## Security
 
@@ -164,6 +203,7 @@ You can specify different deployment stages (e.g., `dev`, `prod`) to manage conf
 
 - `npm run build`: Builds the application for deployment.
 - `npm run lambda:local`: Runs the Lambda functions locally using `serverless-offline`.
+- `npm run start:dev`: Runs the RESTful API locally for development.
 
 ## Testing
 
